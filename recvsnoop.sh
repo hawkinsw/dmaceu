@@ -102,8 +102,8 @@ script='
 
 	/* check for exact name match */
 	(OPT_filter_name == 1 && 
-	 (self->name_match=strstr(execname, NAME)) == strstr(NAME, execname) && 
-         self->name_match != NULL) ? self->ok = 1 : 1;
+	 (this->name_match=strstr(execname, NAME)) == strstr(NAME, execname) &&
+         this->name_match != NULL) ? self->ok = 1 : 1;
 	(OPT_filter_pid == 1 && PID == pid) ? self->ok = 1 : 1;
  }
 
@@ -127,6 +127,7 @@ script='
 	 */
 	printf("%5d %6d %-12.12s %7d %7x %s\n",
 	    uid, pid, execname, (int)this->recv_size, 0, stringof(this->path));
+	self->fd = 0
  }
 '
 
