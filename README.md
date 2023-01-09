@@ -25,6 +25,11 @@ See the follow sections for information about each tool.
 This tool will report the pathname of the Unix socket on which a program is
 `recv`ing data.
 
+### rwsnoop.sh
+
+This tool will report the pathname of the file (if any) associated with the
+file descriptor on which a program is doing I/O.
+
 ## LICENSE
 
 Files bearing their own licenses (in the header of the file) are
