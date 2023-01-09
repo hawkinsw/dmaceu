@@ -1,4 +1,4 @@
-## DMaceU
+# DMaceU
 
 Updated versions of Brendan Gregg's awesome DTrace tools for (modern) versions
 of macOS.
@@ -25,3 +25,8 @@ See the follow sections for information about each tool.
 This tool will report the pathname of the Unix socket on which a program is
 `recv`ing data.
 
+## LICENSE
+
+Files bearing their own licenses (in the header of the file) are
+licensed according to those terms. Files without their own licenses are
+licensed according to [GPLv3](./LICENSE).
