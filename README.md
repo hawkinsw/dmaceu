@@ -30,6 +30,12 @@ This tool will report the pathname of the Unix socket on which a program is
 This tool will report the pathname of the file (if any) associated with the
 file descriptor on which a program is doing I/O.
 
+### execsnoop.sh
+
+This tool will report the command name (i.e., the name of the program) and
+arguments of every process that is `exec`d on the system. Filters available
+for the launching PID and the name of the program `exec`d.
+
 ## LICENSE
 
 Files bearing their own licenses (in the header of the file) are
