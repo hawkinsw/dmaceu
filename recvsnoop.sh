@@ -30,7 +30,7 @@ filter_pid=0
 pid="0"
 name=""
 
-while getopts :p:n: option "$@"; do
+while getopts p:n: option "$@"; do
   case ${option} in
     p)
       pid=${OPTARG}
@@ -42,15 +42,7 @@ while getopts :p:n: option "$@"; do
       filter_name=1
       filter_any=1
       ;;
-    '?')
-      bad_param=${OPTARG}
-      bad_parameter $bad_param $0
-      usage $0
-      exit 1
-      ;;
-    ':')
-      missing_arg=${OPTARG}
-      missing_argument $missing_arg $0
+    ?)
       usage $0
       exit 1
       ;;
