@@ -1,27 +1,27 @@
 #!/bin/bash
 #
-# execsnoop - snoop process execution as it occurs.
+# execsnoop - snoop process execution as it occurs (via execv).
 #             Written using DTrace (Solaris 10 3/05).
 #
 # 09-Jan-2022, ver 1.35
 #
-# USAGE:	execsnoop [-c command | -p pid]
+# USAGE:	execvsnoop [-s command | -p pid]
 #
-#		execsnoop	# default output
+#		execvsnoop	# default output
 #
-#		-c command	# command name to snoop (basename only)
+#		-s command	# name of spawning process (basename only)
 #		-p pid		# only print executions from this parent pid
 #	eg,
-#		execsnoop 		# snoop all execs.
-#		execsnoop -c ls		# snoop executions of ls only.
-#		execsnoop -p 518	# snoop execs from parent pid 518.
+#		execvsnoop 		# snoop all execs.
+#		execvsnoop -s bash	# snoop commands launched by bash
+#		execvsnoop -p 518	# snoop execs from spawning pid 518
 #
 # FIELDS:
 #		UID		User ID
 #		PID		Process ID
 #		PPID		Parent Process ID
-#		COMM		command name for the process
-#		ARGS		argument listing for the process
+#		Parent Name	Command name of spawning process
+#		Execv'd Name	Command name of the execv'd process
 #
 # SEE ALSO: BSM auditing.
 #
@@ -64,29 +64,29 @@ declare    filter_command=""
 
 function usage {
 cat <<-END >&2
-		USAGE: execsnoop [-c command | -p pid]
-		       execsnoop                # default output
-		                -c command      # command name to snoop (basename only)
-		                -p pid		# only print executions from this parent pid
+		USAGE: execvsnoop [-s spawner | -p pid]
+		       execvsnoop               # default output
+		                -s command      # name of the spawning process (basename only)
+		                -p pid		# only print executions from this spawning pid
 		  eg,
-		        execsnoop 		# snoop all execs.
-		        execsnoop -c ls         # snoop executions of ls only
-		        execsnoop -p 518	# snoop execs from parent pid 518.
+		        execvsnoop 		# snoop all execs.
+		        execvsnoop -s bash      # snoop commands launched by bash
+		        execvsnoop -p 518	# snoop execs from spawning pid 518.
 END
 }
 
 ### process options
-while getopts c:p: name
+while getopts s:p: name
 do
 	case $name in
-	c)	filter+=1; filter_command=$OPTARG ;;
+	s)	filter+=1; filter_command=$OPTARG ;;
 	p)	filter+=1; filter_pid=$OPTARG ;;
 	h|?)	usage; exit 1 ;;
 	esac
 done
 
 if [ $filter -gt 1 ]; then
-	echo "Cannot specify a PID and a command to filter."
+	echo "Cannot specify more than one filter."
 	usage;
 	exit 1;
 fi
@@ -94,13 +94,13 @@ fi
 #################################
 # --- Main Program, DTrace ---
 #
-/usr/sbin/dtrace -n '
+/usr/sbin/dtrace -n "
  /*
   * Command line arguments
   */
- inline int FILTER 	= '$filter';
- inline string COMMAND 	= "'$filter_command'";
- inline int PID 	= '$filter_pid';
+ inline int FILTER 	= $filter;
+ inline string COMMAND 	= \"$filter_command\";
+ inline int PID 	= $filter_pid;
  
  #pragma D option quiet
  #pragma D option switchrate=10hz
@@ -111,21 +111,19 @@ fi
  dtrace:::BEGIN 
  {
 	/* print main headers */
-	printf("%5s %6s %6s %s\n", "UID", "PID", "PPID", "(New) Process Name");
+	printf(\"%5s %6s %6s %s %s\n\", \"UID\", \"PID\", \"PPID\", \"Parent Name\", \"Execv' Name\");
  }
 
  /*
-  * Print exec event
+  * Print execv entry
   */
- proc:::exec-success
+ syscall::execve:entry
  / (FILTER == 0) || 
    (strstr(execname, COMMAND) == strstr(COMMAND, execname) && 
     strstr(execname, COMMAND) != NULL) ||
    (ppid == PID)
  /
  {
-	/* print main data */
-	printf("%5d %6d %6d %s\n",
-	        uid, pid, ppid, execname);
+	printf(\"%5d %6d %6d %s %s\n\",uid, pid, ppid, execname, copyinstr(arg0));
  }
-'
+"
