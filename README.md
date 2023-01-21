@@ -36,6 +36,13 @@ This tool will report the command name (i.e., the name of the program) and
 arguments of every process that is `exec`d on the system. Filters available
 for the launching PID and the name of the program `exec`d.
 
+### execvsnoop.sh
+
+This tool will report the command name (i.e., the name of the program) of
+every program that performs an `execv` and the name of the image it spawns.
+Filters available for the name of the spawning command and the pid of 
+the spawning command.
+
 ## LICENSE
 
 Files bearing their own licenses (in the header of the file) are
